@@ -1,0 +1,57 @@
+@use "sass:math";
+
+//== Colors
+
+$base:                  #fff !default;
+$grayBase:              #000 !default;
+
+$grayDarker:            #313131 !default;
+$grayDark:              #666565 !default;
+$gray:                  #A3A2A2 !default;
+$grayLight:             #bbb !default;
+$grayLighter:           #F7F5F4 !default;
+
+$brandPrimary:          tomato !default;
+
+$overlayColor:          rgba(49, 49, 49, 0.4) !default;
+$boxShadow:             0 4px 16px rgba(245, 87, 84, 0.16) !default;
+
+
+//== Reset
+
+$bodyBg:                $base !default;
+$textColor:             $grayDark !default;
+$linkColor:             $brandPrimary !default;
+
+$borderColor:           $grayLighter !default;
+
+
+//== Typography
+
+$fontFamilyBase:        'Corsica LX', sans-serif !default;
+$fontFamilyBaseBook:    'Corsica LX Book', sans-serif !default;
+$fontFamilySecondary:   'Legan', sans-serif !default;
+
+$fontSizeSmall:         14px !default;
+$fontSizeBase:          16px !default;
+$fontSizeLarge:         18px !default;
+
+$fontSize64:            64px !default;
+$fontSize56:            56px !default;
+$fontSize48:            48px !default;
+$fontSize40:            40px !default;
+$fontSize32:            32px !default;
+$fontSize28:            28px !default;
+$fontSize24:            24px !default;
+$fontSize21:            21px !default;
+$fontSize12:            12px !default;
+$fontSize10:            10px !default;
+
+$lineHeightBase:        math.div(18, 12) !default;
+
+
+//== Media queries breakpoints
+
+$screen_min_768:        768px !default;
+$screen_min_1024:       1024px !default;
+$screen_min_1440:       1440px !default;
