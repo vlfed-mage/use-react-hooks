@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const App = () => {
 	return (
 		<div>
 			<HookSwitcher />
+			<Notification />
 		</div>
 	)
 }
@@ -33,5 +34,32 @@ const HookSwitcher = () => {
 		</div>
 	);
 };
+
+const Notification = () => {
+	const [ visibility, setVisibility] = useState(true);
+
+	useEffect(() => {
+		// ... combination between componentDidMount and componentDidUpdate
+	})
+
+	useEffect(() => {
+		// ... componentDidMount
+	}, [])
+
+	useEffect(() => {
+		// ... componentDidUpdate
+	}, [visibility])
+
+	useEffect(() => {
+		const timeOut = setTimeout(() => setVisibility(false),1500 ); // componentDidMount
+		return () => clearTimeout(timeOut); // componentWillUnmount
+	}, [])
+
+	return (
+		<div>
+			{ visibility && <span>hello</span> }
+		</div>
+	)
+}
 
 export default App;
