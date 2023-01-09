@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 const App = () => {
+	const [ value, setValue ] = useState(1);
+
 	return (
-		<div>
+		<div style={{'display': 'grid'}} >
 			<HookSwitcher />
-			<Notification />
+			<GetData id={ value }/>
+			<button
+				type='button'
+				onClick={ () => setValue((v) => v + 1) }>
+				+
+			</button>
 		</div>
 	)
 }
@@ -59,6 +66,51 @@ const Notification = () => {
 		<div>
 			{ visibility && <span>hello</span> }
 		</div>
+	)
+}
+
+
+const GetData = ({ id }) => {
+
+	const [ name, setName ] = useState(null),
+		  [ loader, setLoader ] = useState(true),
+
+	_url = `https://swapi.dev/api/planets/${ id }`,
+
+	getResource = async (url) => {
+		const data = await fetch(url);
+
+		if (!data.ok) {
+			throw new Error(`
+				Data isn't ok. Status: ${ data.status }
+			`)
+		}
+
+		return data.json();
+	},
+
+	updateName = (data) => {
+		setName(data.name);
+		setLoader(false);
+	}
+
+	useEffect(() => {
+		let cancelled = false;
+		setLoader(true);
+
+		getResource(_url)
+			.then( !cancelled && updateName )
+
+		return () => cancelled = true
+
+	}, [id]);
+
+	return (
+		loader
+			? <span>loading...</span>
+			: <div>
+				{ (id && name) && <span> { id } -- { name } </span> }
+			</div>
 	)
 }
 
