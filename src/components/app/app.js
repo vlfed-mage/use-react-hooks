@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useLayoutEffect} from 'react';
 
 const App = () => {
 	const [ value, setValue ] = useState(1);
@@ -12,6 +12,7 @@ const App = () => {
 				onClick={ () => setValue((v) => v + 1) }>
 				+
 			</button>
+			<Notification />
 		</div>
 	)
 }
@@ -59,8 +60,11 @@ const Notification = () => {
 
 	useEffect(() => {
 		const timeOut = setTimeout(() => setVisibility(false),1500 ); // componentDidMount
-		return () => clearTimeout(timeOut); // componentWillUnmount
-	}, [])
+		return () => {
+			console.log('componentWillUnmount');
+			clearTimeout(timeOut); // componentWillUnmount
+		}
+	}, []);
 
 	return (
 		<div>
@@ -71,14 +75,16 @@ const Notification = () => {
 
 
 const GetData = ({ id }) => {
-
+	const abortController = new AbortController(); //initialising an AbortController
 	const [ name, setName ] = useState(null),
 		  [ loader, setLoader ] = useState(true),
 
 	_url = `https://swapi.dev/api/planets/${ id }`,
 
 	getResource = async (url) => {
-		const data = await fetch(url);
+		const data = await fetch(url, {
+			signal: abortController.signal, // passing the AbortController.signal to fetch via the options argument,
+		});
 
 		if (!data.ok) {
 			throw new Error(`
@@ -95,13 +101,21 @@ const GetData = ({ id }) => {
 	}
 
 	useEffect(() => {
-		let cancelled = false;
 		setLoader(true);
 
 		getResource(_url)
-			.then( !cancelled && updateName )
+			.then( updateName )
+			.catch( (error) => {
+				if (error.name === "AbortError") {
+					// catching any AbortErrors
+					// that get thrown (when abort() is called,
+					// the fetch() promise rejects with an AbortError,
+				}
+			})
 
-		return () => cancelled = true
+		return () => {
+			abortController.abort(); // calling the abort function inside the clean-up function
+		}
 
 	}, [id]);
 
