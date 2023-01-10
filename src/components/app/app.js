@@ -6,7 +6,7 @@ const App = () => {
 	return (
 		<div style={{'display': 'grid'}} >
 			<HookSwitcher />
-			<GetData id={ value }/>
+			<GetDataWithAbortController id={ value }/>
 			<button
 				type='button'
 				onClick={ () => setValue((v) => v + 1) }>
@@ -74,7 +74,7 @@ const Notification = () => {
 }
 
 
-const GetData = ({ id }) => {
+const GetDataWithAbortController = ({ id }) => {
 	const abortController = new AbortController(); //initialising an AbortController
 	const [ name, setName ] = useState(null),
 		  [ loader, setLoader ] = useState(true),
