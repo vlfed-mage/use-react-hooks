@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useLayoutEffect} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 
 const App = () => {
 	const [ value, setValue ] = useState(1);
@@ -6,7 +6,7 @@ const App = () => {
 	return (
 		<div style={{'display': 'grid'}} >
 			<HookSwitcher />
-			<GetData id={ value }/>
+			<PlanetInfo id={ value }/>
 			<button
 				type='button'
 				onClick={ () => setValue((v) => v + 1) }>
@@ -74,59 +74,79 @@ const Notification = () => {
 }
 
 
-const GetData = ({ id }) => {
+//---------------------------------------------------------
+
+const getResource = async (id) => {
+	const data = await fetch(`https://swapi.dev/api/planets/${ id }`);
+
+	if (!data.ok) {
+		throw new Error(`
+			Data isn't ok. Status: ${ data.status }
+		`)
+	}
+
+	return data.json();
+};
+
+const useRequest = (request) => {
 	let cancelled = false;
 
-	const _url = `https://swapi.dev/api/planets/${ id }`,
+	const initialState = useMemo(() => ({ // caching
+		data: null,
+		error: null,
+		loading: true
+	}), []),
 
-	getResource = async (url) => {
-		const data = await fetch(url);
+	[ dataState, setDataState ] = useState( initialState ),
 
-		if (!data.ok) {
-			throw new Error(`
-				Data isn't ok. Status: ${ data.status }
-			`)
+	updateData = (data) => {
+		!cancelled && setDataState({
+			data,
+			loading: false,
+			error: null
+		});
+	},
+
+	errorData = (error) => {
+		!cancelled && setDataState({
+			data: null,
+			loading: false,
+			error
+		});
+	};
+
+	useEffect(() => {
+		setDataState( initialState );
+		request()
+			.then( updateData ) // mount
+			.catch( errorData )
+
+		return () => {
+			cancelled = true // unmount
 		}
 
-		return data.json();
-	},
+	}, [ request, initialState ]); // didUpdate
 
-	usePlanetInfo = (id) => {
-		const [ name, setName ] = useState(null),
-		[ loader, setLoader ] = useState(true),
+	return dataState;
+};
 
-		updateName = (data) => {
-			if (!cancelled) {
-				setName(data.name);
-				setLoader(false);
-			}
-		};
+const usePlanetInfo = (id) => {
+	const request = useCallback(() => getResource(id), [ id ]);
+	return useRequest(request)
+};
 
-		useEffect(() => {
-			setLoader(true);
 
-			getResource(_url)
-				.then( updateName )
+const PlanetInfo = ({ id }) => {
 
-			return () => {
-				cancelled = true
-			}
+	const { data, loading, error } = usePlanetInfo(id);
 
-		}, [id]);
-
-		return {
-			name, loader
-		};
-	},
-
-	{ name, loader } = usePlanetInfo(id);
+	if (loading) return <span>Loading...</span>;
+	if (error) return <span>Something get wrong...</span>;
 
 	return (
-		loader
-			? <span>loading...</span>
-			: <div>
-				{ (id && name) && <span> { id } -- { name } </span> }
-			</div>
+		<div>
+			<span> { id } -- { data.name } </span>
+		</div>
 	)
 }
 
