@@ -6,7 +6,7 @@ const App = () => {
 	return (
 		<div style={{'display': 'grid'}} >
 			<HookSwitcher />
-			<GetDataWithAbortController id={ value }/>
+			<GetData id={ value }/>
 			<button
 				type='button'
 				onClick={ () => setValue((v) => v + 1) }>
@@ -74,17 +74,13 @@ const Notification = () => {
 }
 
 
-const GetDataWithAbortController = ({ id }) => {
-	const abortController = new AbortController(); //initialising an AbortController
-	const [ name, setName ] = useState(null),
-		  [ loader, setLoader ] = useState(true),
+const GetData = ({ id }) => {
+	let cancelled = false;
 
-	_url = `https://swapi.dev/api/planets/${ id }`,
+	const _url = `https://swapi.dev/api/planets/${ id }`,
 
 	getResource = async (url) => {
-		const data = await fetch(url, {
-			signal: abortController.signal, // passing the AbortController.signal to fetch via the options argument,
-		});
+		const data = await fetch(url);
 
 		if (!data.ok) {
 			throw new Error(`
@@ -95,29 +91,35 @@ const GetDataWithAbortController = ({ id }) => {
 		return data.json();
 	},
 
-	updateName = (data) => {
-		setName(data.name);
-		setLoader(false);
-	}
+	usePlanetInfo = (id) => {
+		const [ name, setName ] = useState(null),
+		[ loader, setLoader ] = useState(true),
 
-	useEffect(() => {
-		setLoader(true);
+		updateName = (data) => {
+			if (!cancelled) {
+				setName(data.name);
+				setLoader(false);
+			}
+		};
 
-		getResource(_url)
-			.then( updateName )
-			.catch( (error) => {
-				if (error.name === "AbortError") {
-					// catching any AbortErrors
-					// that get thrown (when abort() is called,
-					// the fetch() promise rejects with an AbortError,
-				}
-			})
+		useEffect(() => {
+			setLoader(true);
 
-		return () => {
-			abortController.abort(); // calling the abort function inside the clean-up function
-		}
+			getResource(_url)
+				.then( updateName )
 
-	}, [id]);
+			return () => {
+				cancelled = true
+			}
+
+		}, [id]);
+
+		return {
+			name, loader
+		};
+	},
+
+	{ name, loader } = usePlanetInfo(id);
 
 	return (
 		loader
